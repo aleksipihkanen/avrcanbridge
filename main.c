@@ -109,7 +109,7 @@ ISR(USART0_RX_vect)
 			} else if (strncmp(buffer.b, "ROT", 3)) {
 				msg.s[0] = atof(buffer.f[0]) * 1000;
 				can_send(0x203, msg.b, 2);
-			} else if (strncmp(buffer.b, "RMC", 3)) {
+			} else if (strncmp(buffer.b, "VTG", 3)) {
 				msg.us[0] = atof(buffer.f[0]) * 1000;
 				msg.us[1] = atof(buffer.f[4]) * 1000;
 				if (*buffer.f[5] == 'M')
@@ -117,7 +117,7 @@ ISR(USART0_RX_vect)
 				else
 					msg.us[2] = 1852;
 				can_send(0x204, msg.b, 6);
-			} else if (strncmp(buffer.b, "RMC", 3)) {
+			} else if (strncmp(buffer.b, "DBT", 3)) {
 				msg.s[0] = atof(buffer.f[2]) * 1000;
 				can_send(0x205, msg.b, 2);
 			} else if (strncmp(buffer.b, "VBW", 3)) {
