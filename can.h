@@ -2,7 +2,7 @@
 void can_init(void)
 {
 	uint8_t i;
-	cli();
+	//cli();
 	CANGCON = (1 << SWRES);
 	CANGIE = (1 << ENIT) | (1 << ENRX) | (1 << ENTX) | (1 << ENERR);
 	CANIE2 = (1 << IEMOB1);

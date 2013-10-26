@@ -9,7 +9,7 @@ void uart_init(int baudrate)
 
 	//UCSR0B = (1<<RXEN0) | (1<<TXEN0);
 	UCSR0B = (1 << RXEN0);
-	UCSR0B |= (1 << RXCIE0);	// interrupt on receive
+	//UCSR0B |= (1 << RXCIE0);	// interrupt on receive
 }
 
 void uart_putchar(char c)

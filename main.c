@@ -24,7 +24,6 @@
 #include <string.h>
 #include <avr/io.h>
 #include <avr/iocan128.h>
-#include <avr/interrupt.h>
 #include <util/delay.h>
 
 #include "uart.h"
@@ -38,7 +37,7 @@ void blink(void)
 	PORTB |= _BV(LED_PIN);
 	_delay_ms(600);		// approx 0.6s
 	PORTB &= ~_BV(LED_PIN);
-	_delay_ms(400);		// approx 0.6s
+	_delay_ms(400);		// approx 0.4s
 }
 
 /* Eight bytes for data to be sent over CAN */
@@ -87,12 +86,17 @@ void buffer_split(struct NMEA_buffer *buffer)
 	buffer->f[j] = NULL;
 }
 
-/* React to characters received on USART0 */
-ISR(USART0_RX_vect)
+int main(void)
 {
-	char c;
-	while (UCSR0A & (1 << RXC0)) {
-		c = UDR0;
+    char c;
+	uint8_t i;
+	for (i = 0; i < 8; i++)
+		msg.b[i] = i + 3;
+	can_init();
+	DDRB = _BV(LED_PIN);
+	uart_init(9600);
+	while (1){
+        c = uart_getchar();
 		if (buffer_append(&buffer, c)) {
 			buffer_split(&buffer);
 			if (strncmp(buffer.b, "GLL", 3)) {
@@ -132,19 +136,9 @@ ISR(USART0_RX_vect)
 				else
 					msg.us[2] = 1852;
 				can_send(0x208, msg.b, 6);
-			}
+			} else {
+		        can_send(0x300, msg.b, 1);
+            }
 		}
-	}
-}
-
-int main(void)
-{
-	uint8_t i;
-	for (i = 0; i < 8; i++)
-		msg.b[i] = i + 3;
-	can_init();
-	DDRB = _BV(LED_PIN);
-	uart_init(9600);
-	sei();
-	while (1) ;
+    }
 }
