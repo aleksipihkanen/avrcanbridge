@@ -35,9 +35,9 @@
 void blink(void)
 {
 	PORTB |= _BV(LED_PIN);
-	_delay_ms(600);		// approx 0.6s
+	_delay_ms(200);
 	PORTB &= ~_BV(LED_PIN);
-	_delay_ms(400);		// approx 0.4s
+	_delay_ms(100);
 }
 
 /* Eight bytes for data to be sent over CAN */
@@ -88,57 +88,55 @@ void buffer_split(struct NMEA_buffer *buffer)
 
 int main(void)
 {
-    char c;
+	char c;
 	uint8_t i;
 	for (i = 0; i < 8; i++)
 		msg.b[i] = i + 3;
 	can_init();
 	DDRB = _BV(LED_PIN);
 	uart_init(9600);
-	while (1){
-        c = uart_getchar();
+	while (1) {
+		c = uart_getchar();
 		if (buffer_append(&buffer, c)) {
 			buffer_split(&buffer);
-			if (strncmp(buffer.b, "GLL", 3)) {
+			if (strncmp(buffer.b + 3, "GLL", 3) == 0) {
 				msg.l[0] = dmmtoint(buffer.f[0], buffer.f[1]);
 				msg.l[1] = dmmtoint(buffer.f[2], buffer.f[3]);
 				can_send(0x201, msg.b, 8);
-			} else if (strncmp(buffer.b, "RMC", 3)) {
+			} else if (strncmp(buffer.b + 3, "RMC", 3) == 0) {
 				msg.l[0] = dmmtoint(buffer.f[2], buffer.f[3]);
 				msg.l[1] = dmmtoint(buffer.f[4], buffer.f[5]);
 				can_send(0x201, msg.b, 8);
-			} else if (strncmp(buffer.b, "HDT", 3)) {
-				msg.s[0] = atof(buffer.f[0]) * 1000;
+			} else if (strncmp(buffer.b + 3, "HDT", 3) == 0) {
+				msg.s[0] = atof(buffer.f[0]) * 100;
 				can_send(0x202, msg.b, 2);
-			} else if (strncmp(buffer.b, "ROT", 3)) {
-				msg.s[0] = atof(buffer.f[0]) * 1000;
+			} else if (strncmp(buffer.b + 3, "ROT", 3) == 0) {
+				msg.s[0] = atof(buffer.f[0]) * 100;
 				can_send(0x203, msg.b, 2);
-			} else if (strncmp(buffer.b, "VTG", 3)) {
-				msg.us[0] = atof(buffer.f[0]) * 1000;
-				msg.us[1] = atof(buffer.f[4]) * 1000;
+			} else if (strncmp(buffer.b + 3, "VTG", 3) == 0) {
+				msg.us[0] = atof(buffer.f[0]) * 100;
+				msg.us[1] = atof(buffer.f[4]) * 100;
 				if (*buffer.f[5] == 'M')
 					msg.us[2] = 1000;
 				else
 					msg.us[2] = 1852;
 				can_send(0x204, msg.b, 6);
-			} else if (strncmp(buffer.b, "DBT", 3)) {
-				msg.s[0] = atof(buffer.f[2]) * 1000;
+			} else if (strncmp(buffer.b + 3, "DBT", 3) == 0) {
+				msg.s[0] = atof(buffer.f[2]) * 100;
 				can_send(0x205, msg.b, 2);
-			} else if (strncmp(buffer.b, "VBW", 3)) {
-				msg.s[0] = atof(buffer.f[0]) * 1000;
-				msg.s[1] = atof(buffer.f[1]) * 1000;
+			} else if (strncmp(buffer.b + 3, "VBW", 3) == 0) {
+				msg.s[0] = atof(buffer.f[0]) * 100;
+				msg.s[1] = atof(buffer.f[1]) * 100;
 				can_send(0x206, msg.b, 4);
-			} else if (strncmp(buffer.b, "MWV", 3)) {
-				msg.us[0] = atof(buffer.f[0]) * 1000;
-				msg.us[1] = atof(buffer.f[2]) * 1000;
+			} else if (strncmp(buffer.b + 3, "MWV", 3) == 0) {
+				msg.us[0] = atof(buffer.f[0]) * 100;
+				msg.us[1] = atof(buffer.f[2]) * 100;
 				if (*buffer.f[3] == 'M')
 					msg.us[2] = 1000;
 				else
 					msg.us[2] = 1852;
 				can_send(0x208, msg.b, 6);
-			} else {
-		        can_send(0x300, msg.b, 1);
-            }
+			}
 		}
-    }
+	}
 }
