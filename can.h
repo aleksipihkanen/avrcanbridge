@@ -2,11 +2,7 @@
 void can_init(void)
 {
 	uint8_t i;
-	//cli();
 	CANGCON = (1 << SWRES);
-	CANGIE = (1 << ENIT) | (1 << ENRX) | (1 << ENTX) | (1 << ENERR);
-	CANIE2 = (1 << IEMOB1);
-	CANIE1 = 0;
 	CANGIT = 0;
 	for (i = 0; i < 15; i++) {
 		CANPAGE = i << 4;
@@ -20,20 +16,16 @@ void can_init(void)
 	CANGCON = 0x02;
 }
 
-void can_send(uint16_t id, uint8_t *data, uint8_t len)
+void can_send(uint16_t id, uint8_t * data, uint8_t len)
 {
 	uint8_t i;
-	CANPAGE = (1 << MOBNB0);
-	CANIDT1 = id >> 3;
-	CANIDT2 = (id & 0x07) << 5;
-	CANIDT3 = 0x00;
+	CANPAGE = 0;
 	CANIDT4 = 0x00;
-	CANIDM1 = 0x00;
-	CANIDM1 = 0x00;
-	CANIDM1 = 0x00;
-	CANIDM1 = 0x00;
-	for (i = 0; i < 8; i++)
+	CANIDT3 = 0x00;
+	CANIDT2 = id << 5;
+	CANIDT1 = id >> 3;
+	for (i = 0; i < len; i++)
 		CANMSG = data[i];
-	CANCDMOB = 0x40 | (len & 0x0F);	// enable transmission
+	CANCDMOB = 0x40 | len;	// enable transmission
 	CANSTMOB = 0x00;
 }
